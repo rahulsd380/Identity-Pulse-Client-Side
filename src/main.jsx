@@ -8,6 +8,9 @@ import Home from "./Components/Home/Home";
 import Signup from "./Components/Signup/Signup";
 import SignIn from "./Components/SignIn/SignIn";
 import AuthProvider from "./Components/AuthProvider/AuthProvider";
+import Profile from "./Components/Profile/Profile";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient()
 const router = createBrowserRouter([
   {
     path: "/",
@@ -25,14 +28,20 @@ const router = createBrowserRouter([
         path: "/signin",
         element: <SignIn></SignIn>,
       },
+      {
+        path: "/profile",
+        element: <Profile></Profile>,
+      },
     ],
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 );

@@ -22,36 +22,38 @@ const Signup = () => {
   
   const onSubmit = async (data) => {
     console.log(data);
-    const imageFile = { image: data.image[0] };
-  
+
     try {
-      // Upload image to imgHostingApi
-      const res = await axiosUser.post(imgHostingApi, imageFile, {
+      // Upload image to imgHostingApi using FormData
+      const formData = new FormData();
+      formData.append('image', data.image[0]);
+
+      const res = await axiosUser.post(imgHostingApi, formData, {
         headers: {
           'content-type': 'multipart/form-data',
         },
       });
-  
+
       if (res.data.success) {
-        const { email, password, name, image } = data;
-  
+        const { email, password, name } = data;
+
         const userInfo = {
           name: data.name,
           email: data.email,
           image: res.data.data.display_url,
         };
-  
+
         console.log(userInfo);
-  
+
         const toastId = toast.loading('Signing up...');
-  
+
         // Sign up with email and password
         signUp(email, password)
           .then((result) => {
             // Update profile info
             updateProfileInfo(name).then(() => {
               // Post user data to MongoDB
-              const userData = { name, email, image };
+              const userData = { name, email, image: res.data.data.display_url };
               axiosUser.post('/users', userData).then((res) => {
                 if (res.data.insertedId) {
                   toast.success('Signed up successfully.', { id: toastId });
