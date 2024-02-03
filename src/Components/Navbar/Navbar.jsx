@@ -1,6 +1,21 @@
+import { useContext } from "react";
 import { FaRegCircleUser } from "react-icons/fa6";
+import { Link, useNavigate } from "react-router-dom";
+import { AuthContext } from "../AuthProvider/AuthProvider";
 
 const Navbar = () => {
+  const {user, logout} = useContext(AuthContext);
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    logout()
+      .then((result) => {
+        console.log(result.user);
+        navigate("/signin");
+      })
+      .then((error) => {
+        console.log(error);
+      });
+  };
     return (
         <div>
             
@@ -31,13 +46,24 @@ const Navbar = () => {
 <div className="btn-group">
   <button type="button" className="btn btn-primary dropdown-toggle d-flex gap-2 align-items-center" data-bs-toggle="dropdown" aria-expanded="false">
   <FaRegCircleUser></FaRegCircleUser>
-    Rahul Sutradhar
+    {
+      user?.displayName
+    }
   </button>
+  {
+  !user ? 
   <ul className="dropdown-menu ml-10">
     <li><a className="dropdown-item" href="#">Dashboard</a></li>
-    <li><a className="dropdown-item" href="#">Login</a></li>
-    <li><a className="dropdown-item" href="#">Sign Up</a></li>
+    <li><Link to={"/signin"} className="dropdown-item">Login</Link></li>
+    <li><Link to={"/signup"} className="dropdown-item">Sign Up</Link></li>
   </ul>
+  :
+  <ul className="dropdown-menu ml-10">
+    <li><a className="dropdown-item" href="#">Dashboard</a></li>
+    <li><Link to={"/profile"} className="dropdown-item">Profile</Link></li> {/* Change to "/profile" or your desired profile route */}
+    <li><Link onClick={handleLogout} to={"/signin"} className="dropdown-item">Logout</Link></li>
+  </ul>
+}
 </div>
       </form>
       

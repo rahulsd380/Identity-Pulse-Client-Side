@@ -5,49 +5,83 @@ import { FcGoogle } from "react-icons/fc";
 import Navbar from "../Navbar/Navbar";
 import useAxiosUser from "../../hooks/useAxiosUser";
 import { AuthContext } from "../AuthProvider/AuthProvider";
+import { useForm } from "react-hook-form";
+
+const imgApiKey = '763882e480dd8ab664d9058115562cab';
+
+// Construct the API URL using the key
+const imgHostingApi = `https://api.imgbb.com/1/upload?key=${imgApiKey}`;
 
 const Signup = () => {
-  //   const axiosUser = useAxiosUser();
-  //   const { updateProfileInfo, signUp, googleSignUp } = useContext(AuthContext);
-  //   const location = useLocation();
-  //   const navigate = useNavigate();
+  const axiosUser = useAxiosUser();
+  const { updateProfileInfo, signUp, googleSignUp } = useContext(AuthContext);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const { register, handleSubmit, reset } = useForm();
+  
+  const onSubmit = async (data) => {
+    console.log(data);
+    const imageFile = { image: data.image[0] };
+  
+    try {
+      // Upload image to imgHostingApi
+      const res = await axiosUser.post(imgHostingApi, imageFile, {
+        headers: {
+          'content-type': 'multipart/form-data',
+        },
+      });
+  
+      if (res.data.success) {
+        const { email, password, name, image } = data;
+  
+        const userInfo = {
+          name: data.name,
+          email: data.email,
+          image: res.data.data.display_url,
+        };
+  
+        console.log(userInfo);
+  
+        const toastId = toast.loading('Signing up...');
+  
+        // Sign up with email and password
+        signUp(email, password)
+          .then((result) => {
+            // Update profile info
+            updateProfileInfo(name).then(() => {
+              // Post user data to MongoDB
+              const userData = { name, email, image };
+              axiosUser.post('/users', userData).then((res) => {
+                if (res.data.insertedId) {
+                  toast.success('Signed up successfully.', { id: toastId });
+                  navigate(location?.state ? location.state : '/');
+                }
+              });
+            });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  //   const handleSignUp = (e) => {
-  //     e.preventDefault();
-  //     const name = e.target.name.value;
-  //     const email = e.target.email.value;
-  //     const password = e.target.password.value;
-  //     const role = "user";
-
-  //     const toastId = toast.loading("Signing up...");
-
-  //     signUp(email, password)
-  //       .then((result) => {
-  //         updateProfileInfo(name).then(() => {
-  //           const userInfo = { name, email, role };
-  //           axiosUser.post("/users", userInfo).then((res) => {
-  //             if (res.data.insertedId) {
-  //               toast.success("Signed up successfully.", { id: toastId });
-  //               navigate(location?.state ? location.state : "/");
-  //             }
-  //           });
-  //         });
-  //       })
-  //       .catch((error) => console.log(error))
-  //       .catch((error) => {
-  //         console.log(error);
-  //       });
-  //   };
-
-  //   const googleSignIn = () => {
-  //     googleSignUp()
-  //       .then((result) => {
-  //         navigate(location?.state ? location.state : "/");
-  //       })
-  //       .catch((error) => {
-  //         console.error(error);
-  //       });
-  //   };
+  const googleSignIn = () => {
+    googleSignUp().then((result) => {
+      console.log(result.user);
+      const userInfo = {
+        name: result.user?.displayName,
+        email: result.user?.email,
+      };
+      axiosUser.post("/users", userInfo).then((res) => {
+        console.log(res);
+        navigate('/');
+      });
+    });
+  };
 
   return (
     <div>
@@ -55,7 +89,7 @@ const Signup = () => {
       <div className="container py-5">
         <div className="row justify-content-center align-items-center">
           {/* Left side form */}
-          <form className="col-md-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="col-md-6">
             <div>
               {/* Logo */}
               <div className="d-flex align-items-center gap-3 mb-2">
@@ -80,7 +114,7 @@ const Signup = () => {
                     Your Name
                   </p>
                   <input
-                    name="name"
+                  required {...register("name")}
                     className="form-control"
                     type="text"
                     placeholder="Rahul Sutradhar"
@@ -92,7 +126,7 @@ const Signup = () => {
                     Your Email
                   </p>
                   <input
-                    name="email"
+                  required {...register("email")}
                     className="form-control"
                     type="email"
                     placeholder="rahul@gmail.com"
@@ -104,7 +138,7 @@ const Signup = () => {
                     Password
                   </p>
                   <input
-                    name="password"
+                  required {...register("password")}
                     className="form-control"
                     type="password"
                     placeholder="*********"
@@ -116,6 +150,7 @@ const Signup = () => {
                     Image
                   </label>
                   <input
+                  required {...register("image")}
                     type="file"
                     className="form-control custom-file-input"
                     id="fileInput"
@@ -144,14 +179,14 @@ const Signup = () => {
                   Or,
                 </p>
 
-                <button className="w-100 font-weight-bold transition duration-300 btn btn-outline-dark mb-3 d-flex align-items-center gap-2 justify-content-center">
+                <button onClick={googleSignIn} className="w-100 font-weight-bold transition duration-300 btn btn-outline-dark mb-3 d-flex align-items-center gap-2 justify-content-center">
                   <FcGoogle></FcGoogle> Continue with Google
                 </button>
 
                 <p className="mb-4 text-center">
                   Already Have An Account?{" "}
                   <Link
-                    to={"/login"}
+                    to={"/signin"}
                     className="text-blue font-weight-bold underline"
                   >
                     Sign in
