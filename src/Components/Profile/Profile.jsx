@@ -4,7 +4,7 @@ import useProfileInfo from "../../hooks/useProfileInfo";
 import useAxiosUser from "../../hooks/useAxiosUser";
 import { useForm } from "react-hook-form";
 import Navbar from "../Navbar/Navbar";
-import Swal from "sweetalert2";
+import { FaRegCircleUser } from "react-icons/fa6";
 const imgApiKey = '763882e480dd8ab664d9058115562cab';
 // Construct the API URL using the key
 const imgHostingApi = `https://api.imgbb.com/1/upload?key=${imgApiKey}`;
@@ -17,7 +17,7 @@ const Profile = () => {
 
     const axiosUser = useAxiosUser();
     
-  
+//   Updating user data using react hook form
     const { register, handleSubmit, reset } = useForm();
     const onSubmit = async (data) => {
         console.log(data);
@@ -53,14 +53,20 @@ const Profile = () => {
 
     return (
         <div>
+            
             <Navbar></Navbar>
+            {/* Getting the user data */}
             {
                 profile.map(i => <div key={i._id} className="container my-5">
                 <div className="card shadow-lg">
                   <div className="card-body">
-                    <div className="d-flex justify-content-center align-items-center">
-                      <img style={{ width: '200px', height: '200px'}} className=" start-50 rounded-circle bg-gray-400 border border-white" src={i.image} alt="" />
-                    </div>
+                    {
+                        i.image ? <div className="d-flex justify-content-center align-items-center">
+                        <img style={{ width: '200px', height: '200px'}} className=" start-50 rounded-circle bg-gray-400 border border-white" src={i.image} alt="" />
+                      </div>
+                      :
+                            <FaRegCircleUser></FaRegCircleUser>
+                    }
                     <div className="pt-4 text-center">
                       <h1 className="text-xl mb-1">{i.name}</h1>
                       <p className="text-gray-400 text-sm">{i.title}</p>
