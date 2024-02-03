@@ -1,12 +1,10 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../AuthProvider/AuthProvider";
 import useProfileInfo from "../../hooks/useProfileInfo";
-import { Link } from "react-router-dom";
 import useAxiosUser from "../../hooks/useAxiosUser";
 import { useForm } from "react-hook-form";
-import Swal from "sweetalert2";
-import toast from "react-hot-toast";
 import Navbar from "../Navbar/Navbar";
+import Swal from "sweetalert2";
 const imgApiKey = '763882e480dd8ab664d9058115562cab';
 // Construct the API URL using the key
 const imgHostingApi = `https://api.imgbb.com/1/upload?key=${imgApiKey}`;
@@ -15,8 +13,10 @@ const imgHostingApi = `https://api.imgbb.com/1/upload?key=${imgApiKey}`;
 const Profile = () => {
     const {user} = useContext(AuthContext);
     const [profile, refetch] = useProfileInfo();
+    const [loading, setLoading] = useState(true);
 
     const axiosUser = useAxiosUser();
+    
   
     const { register, handleSubmit, reset } = useForm();
     const onSubmit = async (data) => {
@@ -28,6 +28,7 @@ const Profile = () => {
           }
         });
         console.log(res.data);
+      
         if(res.data.success){
           const updatedInfo = {
             name: data.name,
@@ -37,13 +38,13 @@ const Profile = () => {
           title: data.title,
           }
           
-          const toastId = toast.loading('Updating Info...');
           const updatedRes = await axiosUser.put(`/users/${profile.map(i => i._id)}`, updatedInfo);
           console.log(updatedRes.data);
+          
           if(updatedRes.data.insertedId){
             reset();
             refetch();
-            toast.success('Updated successfully.', { id: toastId });
+            setLoading(false)
           }
         }
         console.log(res.data);
@@ -100,6 +101,15 @@ const Profile = () => {
               <div>
                 <div className="mb-2">
                   <p className="mb-1 font-weight-bold text-gray-600">
+                    {
+                        loading == true &&  "" && loading == false&& "Updated Successfully"
+                    }
+                  </p>
+                </div>
+
+
+                <div className="mb-2">
+                  <p className="mb-1 font-weight-bold text-gray-600">
                     Your Name
                   </p>
                   <input
@@ -152,10 +162,6 @@ const Profile = () => {
               </div>
             </div>
           </form>
-      </div>
-      <div className="modal-footer">
-        <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-        <button type="button" className="btn btn-primary">Save changes</button>
       </div>
     </div>
   </div>
